@@ -1,8 +1,7 @@
 /*
-	heap
-	This question requires you to implement a binary heap function
+    heap
+    This question requires you to implement a binary heap function
 */
-// I AM NOT DONE
 
 use std::cmp::Ord;
 use std::default::Default;
@@ -38,8 +37,22 @@ where
 
     pub fn add(&mut self, value: T) {
         //TODO
+        self.items.push(value);
+        self.count += 1;
+        self.heapify_up(self.count);
     }
-
+    fn heapify_up(&mut self, idx: usize) {
+        let mut child_idx = idx;
+        while child_idx > 1 {
+            let parent_idx = self.parent_idx(child_idx);
+            if (self.comparator)(&self.items[child_idx], &self.items[parent_idx]) {
+                self.items.swap(child_idx, parent_idx);
+                child_idx = parent_idx;
+            } else {
+                break;
+            }
+        }
+    }
     fn parent_idx(&self, idx: usize) -> usize {
         idx / 2
     }
@@ -58,7 +71,31 @@ where
 
     fn smallest_child_idx(&self, idx: usize) -> usize {
         //TODO
-		0
+        let left_idx = self.left_child_idx(idx);
+        let right_idx = self.right_child_idx(idx);
+        if left_idx > self.count {
+            return idx; // 没有子节点，返回当前父节点索引
+        }
+        if right_idx > self.count {
+            return left_idx; // 只有左子节点，返回左子节点索引
+        }
+        if (self.comparator)(&self.items[left_idx], &self.items[right_idx]) {
+            left_idx // 如果左子节点更小，则返回左子节点索引
+        } else {
+            right_idx // 否则返回右子节点索引
+        }
+    }
+    fn heapify_down(&mut self, idx: usize) {
+        let mut parent_idx = idx;
+        while self.children_present(parent_idx) {
+            let smallest_child_idx = self.smallest_child_idx(parent_idx);
+            if (self.comparator)(&self.items[smallest_child_idx], &self.items[parent_idx]) {
+                self.items.swap(parent_idx, smallest_child_idx);
+                parent_idx = smallest_child_idx;
+            } else {
+                break;
+            }
+        }
     }
 }
 
@@ -79,13 +116,21 @@ where
 
 impl<T> Iterator for Heap<T>
 where
-    T: Default,
+    T: Default + Clone,
 {
     type Item = T;
 
     fn next(&mut self) -> Option<T> {
         //TODO
-		None
+        if self.is_empty() {
+            return None;
+        }
+        let top = self.items[1].clone();
+        self.items[1] = self.items[self.count].clone();
+        self.count -= 1;
+        self.items.pop();
+        self.heapify_down(1);
+        Some(top)
     }
 }
 
